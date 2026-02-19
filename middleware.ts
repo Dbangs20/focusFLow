@@ -1,5 +1,7 @@
 import { withAuth } from "next-auth/middleware";
-import { authCookieConfig } from "@/lib/authOptions";
+
+// Keep middleware edge-safe: do not import authOptions/prisma here.
+const sessionTokenCookieName = "focusflow.session-token";
 
 export const config = {
   matcher: [
@@ -22,7 +24,7 @@ export default withAuth({
   },
   cookies: {
     sessionToken: {
-      name: authCookieConfig.sessionToken,
+      name: sessionTokenCookieName,
     },
   },
 });
