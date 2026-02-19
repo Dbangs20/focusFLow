@@ -1,0 +1,182 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+//generator client {
+//  provider = "prisma-client"
+//  output   = "../src/generated/prisma"
+//}
+
+//datasource db {
+//provider     = "mysql"
+ // relationMode = "prisma"
+//}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Task {
+  id        String    @id @default(uuid())
+  content   String
+  completed Boolean   @default(false)
+  createdAt DateTime  @default(now())
+  userId    String?
+  user      User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model GroupTask {
+  id         String   @id @default(uuid())
+  groupId    String
+  content    String
+  createdAt  DateTime @default(now())
+  groupRefId String?
+  groupRef   Group?   @relation(fields: [groupRefId], references: [id], onDelete: SetNull)
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  accounts      Account[]
+  sessions      Session[]
+  tasks         Task[]
+  memberships   Membership[]
+  focusEntries  UserInSession[]
+  focusState    UserFocusState?
+  nudgeHistory  AgentNudge[]
+  gamification  UserGamification?
+}
+
+model Group {
+  id          String       @id @default(uuid())
+  name        String       @unique
+  createdAt   DateTime     @default(now())
+  memberships Membership[]
+  tasks       GroupTask[]
+}
+
+model Membership {
+  id      String @id @default(uuid())
+  role    String
+  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId  String
+  group   Group  @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  groupId String
+
+  @@unique([userId, groupId])
+}
+
+model FocusSession {
+  id           String          @id @default(uuid())
+  name         String
+  adminUserId  String?
+  durationSeconds Int?
+  goal         String?
+  recap        String?
+  createdAt    DateTime        @default(now())
+  startedAt    DateTime?
+  endedAt      DateTime?
+  teamSessionId String?
+  teamSession  TeamFocusSession? @relation("TeamSessions", fields: [teamSessionId], references: [id], onDelete: SetNull)
+  participants UserInSession[]
+}
+
+model TeamFocusSession {
+  id        String         @id
+  createdAt DateTime       @default(now())
+  sessions  FocusSession[] @relation("TeamSessions")
+}
+
+model UserInSession {
+  id             String       @id @default(uuid())
+  userName       String
+  goal           String
+  recap          String?
+  breakActive    Boolean      @default(false)
+  breakStartedAt DateTime?
+  breakEndsAt    DateTime?
+  breakRelaxationsUsed Int    @default(0)
+  breakPausedSeconds   Int    @default(0)
+  breakEscalatedAt     DateTime?
+  focusSession   FocusSession @relation(fields: [focusSessionId], references: [id], onDelete: Cascade)
+  focusSessionId String
+  userId         String?
+  user           User?        @relation(fields: [userId], references: [id], onDelete: SetNull)
+}
+
+model UserFocusState {
+  userId         String   @id
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lastActivityAt DateTime?
+  focusScore     Int      @default(80)
+  reliabilityScore Int    @default(100)
+  overdueCount   Int      @default(0)
+  lastOverdueAt  DateTime?
+  updatedAt      DateTime @updatedAt
+}
+
+model AgentNudge {
+  id           String   @id @default(uuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  message      String
+  kind         String
+  acknowledged Boolean  @default(false)
+  response     String?
+  createdAt    DateTime @default(now())
+}
+
+model UserGamification {
+  userId         String   @id
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  totalPoints    Int      @default(0)
+  currentStreak  Int      @default(0)
+  longestStreak  Int      @default(0)
+  lastSessionDate DateTime?
+  updatedAt      DateTime @updatedAt
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
