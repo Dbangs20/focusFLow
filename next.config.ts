@@ -1,8 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
-  reactCompiler: true,
+  // Keep dev rebuilds lighter; enable only when you specifically need it.
+  reactCompiler: false,
 };
 
 export default nextConfig;
