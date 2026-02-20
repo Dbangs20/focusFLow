@@ -15,6 +15,7 @@ export default function SignInPage() {
   const [providersFailed, setProvidersFailed] = useState(false);
   const [email, setEmail] = useState("");
   const callbackUrl = searchParams?.get("callbackUrl") || "/dashboard";
+  const authError = (searchParams?.get("error") || "").trim();
 
   useEffect(() => {
     const loadProviders = async () => {
@@ -58,6 +59,11 @@ export default function SignInPage() {
     <div className="max-w-xl mx-auto p-6 space-y-4 ff-card">
       <h1 className="text-2xl font-bold">Sign In</h1>
       <p className="text-sm ff-subtle">Choose a provider to continue.</p>
+      {authError && (
+        <p className="text-xs" style={{ color: "var(--accent-danger)" }}>
+          Sign-in error: {authError}
+        </p>
+      )}
       {providersFailed && (
         <p className="text-xs" style={{ color: "var(--accent-warning)" }}>
           Provider lookup failed. Showing fallback sign-in options.

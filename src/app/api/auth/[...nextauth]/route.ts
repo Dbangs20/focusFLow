@@ -39,11 +39,5 @@ export async function GET(...args: Parameters<typeof handler>) {
 
 export async function POST(...args: Parameters<typeof handler>) {
   await tryEnsureAuthSchema();
-
-  try {
-    return handler(...args);
-  } catch (error) {
-    console.error("Auth POST handler error:", error);
-    return NextResponse.json({ error: "Auth backend unavailable" }, { status: 500 });
-  }
+  return handler(...args);
 }
