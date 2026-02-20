@@ -88,7 +88,9 @@ export async function POST(req: Request) {
     normalizedGroupId,
   );
 
-  const tasks = groupRows.map((row) => row.content.trim()).filter(Boolean);
+  const tasks = groupRows
+    .map((row: { content: string }) => row.content.trim())
+    .filter((value: string) => Boolean(value));
   if (tasks.length === 0) {
     return NextResponse.json({ plan: [], error: "No tasks found for this group." }, { status: 400 });
   }
@@ -120,7 +122,7 @@ Please return a clear, actionable step-by-step plan for this group to complete t
     const text = completion.choices[0].message.content || "";
     const steps = text
       .split("\n")
-      .map((line) => line.replace(/^\d+\.\s*/, "").trim())
+      .map((line: string) => line.replace(/^\d+\.\s*/, "").trim())
       .filter(Boolean);
 
     await prisma.$executeRawUnsafe(
