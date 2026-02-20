@@ -12,19 +12,29 @@ export default function SignInPage() {
   const searchParams = useSearchParams();
   const { data: session, status } = useSession();
   const [providers, setProviders] = useState<ProviderMap>({});
+  const [providersFailed, setProvidersFailed] = useState(false);
   const [email, setEmail] = useState("");
   const callbackUrl = searchParams?.get("callbackUrl") || "/dashboard";
 
   useEffect(() => {
     const loadProviders = async () => {
-      const res = await getProviders();
-      setProviders(res ?? {});
+      try {
+        const res = await getProviders();
+        setProviders(res ?? {});
+      } catch {
+        setProvidersFailed(true);
+      }
     };
 
     loadProviders();
   }, []);
 
   const sortedProviders = useMemo(() => Object.values(providers), [providers]);
+  const hasProviders = sortedProviders.length > 0;
+  const oauthProviders = hasProviders
+    ? sortedProviders.filter((provider) => provider.id !== "email")
+    : [{ id: "github", name: "GitHub" } as ClientSafeProvider];
+  const emailEnabled = hasProviders ? Boolean(providers.email) : true;
 
   if (status === "loading") {
     return <div className="max-w-xl mx-auto p-6 text-sm ff-subtle">Loading...</div>;
@@ -48,11 +58,14 @@ export default function SignInPage() {
     <div className="max-w-xl mx-auto p-6 space-y-4 ff-card">
       <h1 className="text-2xl font-bold">Sign In</h1>
       <p className="text-sm ff-subtle">Choose a provider to continue.</p>
+      {providersFailed && (
+        <p className="text-xs" style={{ color: "var(--accent-warning)" }}>
+          Provider lookup failed. Showing fallback sign-in options.
+        </p>
+      )}
 
       <div className="space-y-2">
-        {sortedProviders
-          .filter((provider) => provider.id !== "email")
-          .map((provider) => (
+        {oauthProviders.map((provider) => (
             <button
               key={provider.id}
               onClick={() =>
@@ -69,7 +82,7 @@ export default function SignInPage() {
           ))}
       </div>
 
-      {providers.email && (
+      {emailEnabled && (
         <div
           className="space-y-2 rounded p-3"
           style={{ border: "1px solid var(--card-border)", background: "var(--surface-2)" }}
