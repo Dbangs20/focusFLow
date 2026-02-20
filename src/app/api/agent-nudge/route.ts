@@ -15,7 +15,8 @@ You are a helpful focus agent. Based on the user's current tasks and context, de
 Respond in one line.
 `;
 
-  const taskList = context.activeTasks.map((t) => `- ${t.content}`).join("\n") || "- No active tasks";
+  const taskList =
+    context.activeTasks.map((t: { content: string }) => `- ${t.content}`).join("\n") || "- No active tasks";
   const userPrompt = `User has ${context.activeTasks.length} tasks:\n${taskList}\nFocus score: ${context.focusScore}\nIdle seconds: ${context.idleSeconds}`;
 
   let suggestion = "Keep going, you're on track.";
