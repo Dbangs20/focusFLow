@@ -100,8 +100,13 @@ export async function POST(req: Request) {
     return NextResponse.json({ suggestions: [] });
   }
 
-  const memberLines = members.map((m, i) => `${i + 1}. ${m.name || m.email || `Member ${i + 1}`}`).join("\n");
-  const taskLines = tasks.map((t, i) => `${i + 1}. ${t.content}`).join("\n");
+  const memberLines = members
+    .map(
+      (m: { name: string | null; email: string | null }, i: number) =>
+        `${i + 1}. ${m.name || m.email || `Member ${i + 1}`}`,
+    )
+    .join("\n");
+  const taskLines = tasks.map((t: { content: string }, i: number) => `${i + 1}. ${t.content}`).join("\n");
 
   const prompt = `
 You are a team productivity planner.
@@ -128,7 +133,7 @@ Each line should be: "<Member> -> <Task>: <Reason>".
     const text = res.choices[0]?.message?.content || "";
     const suggestions = text
       .split("\n")
-      .map((s) => s.replace(/^\d+\.\s*/, "").trim())
+      .map((s: string) => s.replace(/^\d+\.\s*/, "").trim())
       .filter(Boolean);
 
     await prisma.$executeRawUnsafe(
