@@ -1,10 +1,12 @@
-import { PrismaClient } from "@prisma/client";
+type PrismaExecutor = {
+  $executeRawUnsafe: (query: string, ...values: unknown[]) => Promise<unknown>;
+};
 
 const globalForGroupRoleSchema = globalThis as unknown as {
   groupRoleSchemaReady?: Promise<void>;
 };
 
-export const ensureGroupRoleSchema = async (prisma: PrismaClient) => {
+export const ensureGroupRoleSchema = async (prisma: PrismaExecutor) => {
   await prisma.$executeRawUnsafe(`
     CREATE TABLE IF NOT EXISTS "Group" (
       "id" TEXT NOT NULL,
@@ -98,7 +100,7 @@ export const ensureGroupRoleSchema = async (prisma: PrismaClient) => {
   `);
 };
 
-export const ensureGroupRoleSchemaOnce = (prisma: PrismaClient) => {
+export const ensureGroupRoleSchemaOnce = (prisma: PrismaExecutor) => {
   if (!globalForGroupRoleSchema.groupRoleSchemaReady) {
     globalForGroupRoleSchema.groupRoleSchemaReady = ensureGroupRoleSchema(prisma);
   }

@@ -1,10 +1,12 @@
-import { PrismaClient } from "@prisma/client";
+type PrismaExecutor = {
+  $executeRawUnsafe: (query: string, ...values: unknown[]) => Promise<unknown>;
+};
 
 const globalForFocusSessionSchema = globalThis as unknown as {
   focusSessionSchemaReady?: Promise<void>;
 };
 
-export const ensureFocusSessionColumns = async (prisma: PrismaClient) => {
+export const ensureFocusSessionColumns = async (prisma: PrismaExecutor) => {
   await prisma.$executeRawUnsafe(`
     ALTER TABLE "FocusSession" ADD COLUMN IF NOT EXISTS "adminUserId" TEXT;
   `);
@@ -26,7 +28,7 @@ export const ensureFocusSessionColumns = async (prisma: PrismaClient) => {
   `);
 };
 
-export const ensureFocusSessionSchema = async (prisma: PrismaClient) => {
+export const ensureFocusSessionSchema = async (prisma: PrismaExecutor) => {
   await prisma.$executeRawUnsafe(`
     CREATE TABLE IF NOT EXISTS "FocusSession" (
       "id" TEXT NOT NULL,
@@ -233,7 +235,7 @@ export const ensureFocusSessionSchema = async (prisma: PrismaClient) => {
   `);
 };
 
-export const ensureFocusSessionSchemaOnce = (prisma: PrismaClient) => {
+export const ensureFocusSessionSchemaOnce = (prisma: PrismaExecutor) => {
   if (!globalForFocusSessionSchema.focusSessionSchemaReady) {
     globalForFocusSessionSchema.focusSessionSchemaReady = ensureFocusSessionSchema(prisma);
   }

@@ -1,10 +1,12 @@
-import { PrismaClient } from "@prisma/client";
+type PrismaExecutor = {
+  $executeRawUnsafe: (query: string, ...values: unknown[]) => Promise<unknown>;
+};
 
 const globalForAuthSchema = globalThis as unknown as {
   authSchemaReady?: Promise<void>;
 };
 
-export const ensureAuthSchema = async (prisma: PrismaClient) => {
+export const ensureAuthSchema = async (prisma: PrismaExecutor) => {
   await prisma.$executeRawUnsafe(`
     CREATE TABLE IF NOT EXISTS "User" (
       "id" TEXT NOT NULL,
@@ -117,7 +119,7 @@ export const ensureAuthSchema = async (prisma: PrismaClient) => {
   `);
 };
 
-export const ensureAuthSchemaOnce = (prisma: PrismaClient) => {
+export const ensureAuthSchemaOnce = (prisma: PrismaExecutor) => {
   if (!globalForAuthSchema.authSchemaReady) {
     globalForAuthSchema.authSchemaReady = ensureAuthSchema(prisma);
   }
