@@ -5,6 +5,20 @@ import { getPrisma } from "@/lib/prisma";
 import { ensureAuthSchemaOnce } from "@/lib/ensureAuthSchema";
 import { ensureFocusSessionSchemaOnce, ensureFocusSessionColumns } from "@/lib/ensureFocusSessionSchema";
 
+type SessionParticipantRow = {
+  id: string;
+  userName: string;
+  goal: string;
+  recap: string | null;
+  userId: string | null;
+  breakActive: boolean;
+  breakStartedAt: Date | null;
+  breakEndsAt: Date | null;
+  breakRelaxationsUsed: number;
+  breakPausedSeconds: number;
+  breakEscalatedAt: Date | null;
+};
+
 const getCurrentUser = async () => {
   const session = await getServerSession(authOptions);
   const email = (session?.user?.email || "").trim().toLowerCase();
@@ -70,21 +84,7 @@ export async function GET(
     return NextResponse.json({ error: "Session not found" }, { status: 404 });
   }
 
-  const participants = await prisma.$queryRawUnsafe<
-    Array<{
-      id: string;
-      userName: string;
-      goal: string;
-      recap: string | null;
-      userId: string | null;
-      breakActive: boolean;
-      breakStartedAt: Date | null;
-      breakEndsAt: Date | null;
-      breakRelaxationsUsed: number;
-      breakPausedSeconds: number;
-      breakEscalatedAt: Date | null;
-    }>
-  >(
+  const participants = await prisma.$queryRawUnsafe<SessionParticipantRow[]>(
     `
     SELECT
       "id",
@@ -105,7 +105,8 @@ export async function GET(
     normalizedSessionId,
   );
 
-  const currentUserEntry = participants.find((row) => row.userId === currentUser.id) || null;
+  const currentUserEntry =
+    participants.find((row: SessionParticipantRow) => row.userId === currentUser.id) || null;
 
   return NextResponse.json({
     session: currentSession,
