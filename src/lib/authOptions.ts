@@ -45,7 +45,7 @@ if (process.env.GOOGLE_ID && process.env.GOOGLE_SECRET) {
   );
 }
 
-if (process.env.EMAIL_SERVER && process.env.EMAIL_FROM) {
+if (adapter && process.env.EMAIL_SERVER && process.env.EMAIL_FROM) {
   providers.push(
     EmailProvider({
       server: process.env.EMAIL_SERVER,
