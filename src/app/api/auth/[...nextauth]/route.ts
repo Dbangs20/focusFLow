@@ -5,6 +5,13 @@ import { getPrisma } from "@/lib/prisma";
 import { ensureAuthSchemaOnce } from "@/lib/ensureAuthSchema";
 
 const handler = NextAuth(authOptions);
+const tryEnsureAuthSchema = async () => {
+  try {
+    await ensureAuthSchemaOnce(getPrisma());
+  } catch (error) {
+    console.error("Auth schema bootstrap error:", error);
+  }
+};
 
 export async function GET(...args: Parameters<typeof handler>) {
   const req = args[0] as Request;
@@ -16,24 +23,27 @@ export async function GET(...args: Parameters<typeof handler>) {
     return handler(...args);
   }
 
-  try {
-    await ensureAuthSchemaOnce(getPrisma());
-  } catch (error) {
-    console.error("Auth schema bootstrap error:", error);
-    if (url.includes("/api/auth/session")) {
+  await tryEnsureAuthSchema();
+
+  if (url.includes("/api/auth/session")) {
+    try {
+      return handler(...args);
+    } catch (error) {
+      console.error("Auth session handler error:", error);
       return NextResponse.json(null, { status: 200 });
     }
-    return NextResponse.json({ error: "Auth backend unavailable" }, { status: 500 });
   }
+
   return handler(...args);
 }
 
 export async function POST(...args: Parameters<typeof handler>) {
+  await tryEnsureAuthSchema();
+
   try {
-    await ensureAuthSchemaOnce(getPrisma());
+    return handler(...args);
   } catch (error) {
-    console.error("Auth schema bootstrap error:", error);
+    console.error("Auth POST handler error:", error);
     return NextResponse.json({ error: "Auth backend unavailable" }, { status: 500 });
   }
-  return handler(...args);
 }
