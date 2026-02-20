@@ -1,10 +1,12 @@
-import { PrismaClient } from "@prisma/client";
+type PrismaExecutor = {
+  $executeRawUnsafe: (query: string, ...values: unknown[]) => Promise<unknown>;
+};
 
 const globalForAgentSchema = globalThis as unknown as {
   agentSchemaReady?: Promise<void>;
 };
 
-export const ensureAgentSchema = async (prisma: PrismaClient) => {
+export const ensureAgentSchema = async (prisma: PrismaExecutor) => {
   await prisma.$executeRawUnsafe(`
     CREATE TABLE IF NOT EXISTS "UserFocusState" (
       "userId" TEXT NOT NULL,
@@ -138,7 +140,7 @@ export const ensureAgentSchema = async (prisma: PrismaClient) => {
   `);
 };
 
-export const ensureAgentSchemaOnce = (prisma: PrismaClient) => {
+export const ensureAgentSchemaOnce = (prisma: PrismaExecutor) => {
   if (!globalForAgentSchema.agentSchemaReady) {
     globalForAgentSchema.agentSchemaReady = ensureAgentSchema(prisma);
   }
