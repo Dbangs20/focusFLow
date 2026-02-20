@@ -112,12 +112,12 @@ export async function POST(req: Request) {
   );
 
   const recapLines: string[] = [];
-  sessionRecaps.forEach((item, idx) => {
+  sessionRecaps.forEach((item: { recap: string | null }, idx: number) => {
     if (item.recap?.trim()) {
       recapLines.push(`Session ${idx + 1}: ${item.recap.trim()}`);
     }
   });
-  participantRecaps.forEach((item) => {
+  participantRecaps.forEach((item: { userName: string; recap: string | null }) => {
     if (item.recap?.trim()) {
       recapLines.push(`${item.userName}: ${item.recap.trim()}`);
     }
