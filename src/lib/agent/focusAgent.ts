@@ -55,7 +55,7 @@ export async function getAgentFocusContext() {
 
   return {
     userId: user.id,
-    activeTasks: tasks.map((t) => ({ id: t.id, content: t.content, createdAt: t.createdAt })),
+    activeTasks: tasks.map((t: ActiveTask) => ({ id: t.id, content: t.content, createdAt: t.createdAt })),
     lastActivity: lastActivityAt,
     idleSeconds,
     focusScore,
