@@ -111,11 +111,39 @@ export const ensureAuthSchema = async (prisma: PrismaExecutor) => {
   `);
 
   await prisma.$executeRawUnsafe(`
+    CREATE TABLE IF NOT EXISTS "Task" (
+      "id" TEXT NOT NULL,
+      "content" TEXT NOT NULL,
+      "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      "userId" TEXT,
+      "completed" BOOLEAN NOT NULL DEFAULT FALSE,
+      CONSTRAINT "Task_pkey" PRIMARY KEY ("id")
+    );
+  `);
+
+  await prisma.$executeRawUnsafe(`
     ALTER TABLE "Task" ADD COLUMN IF NOT EXISTS "userId" TEXT;
   `);
 
   await prisma.$executeRawUnsafe(`
     ALTER TABLE "Task" ADD COLUMN IF NOT EXISTS "completed" BOOLEAN NOT NULL DEFAULT FALSE;
+  `);
+
+  await prisma.$executeRawUnsafe(`
+    DO $$
+    BEGIN
+      IF NOT EXISTS (
+        SELECT 1
+        FROM pg_constraint
+        WHERE conname = 'Task_userId_fkey'
+      ) THEN
+        ALTER TABLE "Task"
+        ADD CONSTRAINT "Task_userId_fkey"
+        FOREIGN KEY ("userId") REFERENCES "User"("id")
+        ON DELETE CASCADE ON UPDATE CASCADE;
+      END IF;
+    END
+    $$;
   `);
 };
 
